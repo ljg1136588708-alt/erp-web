@@ -12,6 +12,7 @@ const staticRoutes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: '/home' },
       { path: 'home', name: 'home', component: () => import('@/views/Home.vue') },
+      { path: 'profile', name: 'profile', component: () => import('@/views/profile.vue') },
     ],
   },
   { path: '/:pathMatch(.*)*', name: 'notfound', component: () => import('@/views/NotFound.vue') },

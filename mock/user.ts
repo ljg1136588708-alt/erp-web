@@ -51,6 +51,11 @@ export default [
     },
   },
   {
+    url: '/api/user/change-password',
+    method: 'post',
+    response: () => ({ code: 0, message: 'ok', data: null }),
+  },
+  {
     url: '/api/user/info',
     method: 'get',
     response: () => ({

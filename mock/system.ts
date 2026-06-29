@@ -29,11 +29,13 @@ const roles = [
   { id: 4, name: '销售员', code: 'seller', remark: '负责销售', permissions: ['sale:add', 'sale:edit', 'sale:audit'] },
 ]
 const depts = [
-  { id: 1, name: '总公司', parentName: '-', sort: 1 },
-  { id: 2, name: '采购部', parentName: '总公司', sort: 2 },
-  { id: 3, name: '销售部', parentName: '总公司', sort: 3 },
-  { id: 4, name: '财务部', parentName: '总公司', sort: 4 },
-  { id: 5, name: '仓储部', parentName: '总公司', sort: 5 },
+  { id: 1, name: '总公司', parentId: 0, sort: 1 },
+  { id: 2, name: '采购部', parentId: 1, sort: 2 },
+  { id: 3, name: '销售部', parentId: 1, sort: 3 },
+  { id: 4, name: '财务部', parentId: 1, sort: 4 },
+  { id: 5, name: '仓储部', parentId: 1, sort: 5 },
+  { id: 6, name: '华东采购组', parentId: 2, sort: 1 },
+  { id: 7, name: '华南采购组', parentId: 2, sort: 2 },
 ]
 const menus = [
   { id: 1, title: '系统管理', path: '/system', permission: '' },
@@ -65,5 +67,10 @@ export default [
     url: '/api/system/permission/all',
     method: 'get',
     response: () => ({ code: 0, message: 'ok', data: permissionGroups }),
+  },
+  {
+    url: '/api/system/user/:id/reset-password',
+    method: 'post',
+    response: () => ({ code: 0, message: 'ok', data: null }),
   },
 ] as MockMethod[]

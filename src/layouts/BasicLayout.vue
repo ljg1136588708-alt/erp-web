@@ -18,6 +18,7 @@
           <span>{{ auth.user?.nickname }}</span>
           <template #overlay>
             <a-menu>
+              <a-menu-item @click="router.push('/profile')">个人中心</a-menu-item>
               <a-menu-item @click="onLogout">退出登录</a-menu-item>
             </a-menu>
           </template>

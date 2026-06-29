@@ -14,9 +14,12 @@
           <a-tag :color="record.status ? 'green' : 'red'">{{ record.status ? '启用' : '停用' }}</a-tag>
         </template>
       </a-table-column>
-      <a-table-column title="操作" width="160">
+      <a-table-column title="操作" width="240">
         <template #default="{ record }">
           <a-button type="link" size="small" v-permission="'user:edit'" @click="openEdit(record)">编辑</a-button>
+          <a-popconfirm title="确认重置该用户密码?" @confirm="onReset(record.id)">
+            <a-button type="link" size="small" v-permission="'user:reset'">重置密码</a-button>
+          </a-popconfirm>
           <a-popconfirm title="确认删除?" @confirm="onDelete(record.id)">
             <a-button type="link" size="small" danger v-permission="'user:delete'">删除</a-button>
           </a-popconfirm>
@@ -41,6 +44,7 @@
 import { computed, reactive, ref, onMounted } from 'vue'
 import { message } from 'ant-design-vue'
 import { useCrud } from '@/composables/useCrud'
+import request from '@/utils/request'
 
 interface User { id: number; username: string; nickname: string; status: number; roleName: string }
 
@@ -91,6 +95,10 @@ async function onSubmit() {
 async function onDelete(id: number) {
   await remove(id)
   message.success('已删除')
+}
+async function onReset(id: number) {
+  await request.post(`/system/user/${id}/reset-password`)
+  message.success('密码已重置为 123456')
 }
 
 onMounted(fetchList)
