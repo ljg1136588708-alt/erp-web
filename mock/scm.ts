@@ -1,6 +1,6 @@
 import type { MockMethod } from 'vite-plugin-mock'
 import { crudMock } from './crud'
-import { stocks, flows, addStock } from './inventory'
+import { stocks, flows, addStock, getQty, reduceStock } from './inventory'
 
 const whName = ['主仓库', '北方仓', '南方仓']
 function orderItems(i: number) {
@@ -51,13 +51,21 @@ const purchases = Array.from({ length: 15 }, (_, i) => {
     items,
   }
 })
-const sales = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  orderNo: `SO${String(20260000 + i + 1)}`,
-  customerName: `客户${(i % 12) + 1}`,
-  amount: (i + 1) * 1200,
-  status: ['待审核', '已审核', '已出库'][i % 3],
-}))
+const sales = Array.from({ length: 15 }, (_, i) => {
+  const { items, amount } = orderItems(i)
+  const wId = (i % 3) + 1
+  return {
+    id: i + 1,
+    orderNo: `SO${String(20260000 + i + 1)}`,
+    customerName: `客户${(i % 12) + 1}`,
+    warehouseId: wId,
+    warehouseName: whName[wId - 1],
+    date: '2026-06-29',
+    amount,
+    status: ['待审核', '已审核', '已出库'][i % 3],
+    items,
+  }
+})
 const inbounds = Array.from({ length: 14 }, (_, i) => ({
   id: i + 1,
   inboundNo: `IN${String(20260000 + i + 1)}`,
@@ -115,6 +123,23 @@ export default [
     response: ({ body }: any) => {
       const { warehouseId, warehouseName, items } = body
       ;(items || []).forEach((it: any) => addStock(it.goodsId, it.goodsName, warehouseId, warehouseName, it.qty))
+      return { code: 0, message: 'ok', data: null }
+    },
+  },
+  // 销售发货:先校验所有明细库存充足(全或无),再逐明细扣减
+  {
+    url: '/api/scm/sale/:id/ship',
+    method: 'post',
+    response: ({ body }: any) => {
+      const { warehouseId, warehouseName, items } = body
+      const list = items || []
+      for (const it of list) {
+        const have = getQty(it.goodsId, warehouseId)
+        if (have < it.qty) {
+          return { code: 1, message: `${it.goodsName} 库存不足(现有 ${have},需 ${it.qty})`, data: null }
+        }
+      }
+      list.forEach((it: any) => reduceStock(it.goodsId, it.goodsName, warehouseId, warehouseName, it.qty))
       return { code: 0, message: 'ok', data: null }
     },
   },
