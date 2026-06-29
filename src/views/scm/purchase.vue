@@ -14,8 +14,14 @@
           <a-tag :color="statusColor(record.status)">{{ record.status }}</a-tag>
         </template>
       </a-table-column>
-      <a-table-column title="操作" width="160">
+      <a-table-column title="操作" width="240">
         <template #default="{ record }">
+          <a-popconfirm v-if="record.status === '待审核'" title="确认审核通过?" @confirm="transition(record, '已审核')">
+            <a-button type="link" size="small" v-permission="'purchase:audit'">审核</a-button>
+          </a-popconfirm>
+          <a-popconfirm v-if="record.status === '已审核'" title="确认收货入库?" @confirm="transition(record, '已入库')">
+            <a-button type="link" size="small" v-permission="'purchase:audit'">收货</a-button>
+          </a-popconfirm>
           <a-button type="link" size="small" v-permission="'purchase:edit'" @click="openEdit(record)">编辑</a-button>
           <a-popconfirm title="确认删除?" @confirm="onDelete(record.id)">
             <a-button type="link" size="small" danger v-permission="'purchase:delete'">删除</a-button>
@@ -95,6 +101,11 @@ async function onSubmit() {
 async function onDelete(id: number) {
   await remove(id)
   message.success('已删除')
+}
+// ponytail: 仅流转状态;收货暂不联动库存数量(订单无多行明细,需明细表后续做)
+async function transition(record: Purchase, status: string) {
+  await update(record.id, { status })
+  message.success(`已${status}`)
 }
 
 onMounted(fetchList)
