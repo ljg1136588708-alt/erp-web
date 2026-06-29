@@ -34,7 +34,8 @@ router.beforeEach(async (to) => {
     const user = await auth.fetchUserInfo()
     if (!dynamicAdded && user) {
       for (const r of generateRoutes(user.menus)) {
-        router.addRoute('layout', r) // 挂到 BasicLayout(name: 'layout')下
+        // 跳过已存在的同名路由(如静态 home 与菜单 home),避免重复注册告警
+        if (r.name && !router.hasRoute(r.name)) router.addRoute('layout', r)
       }
       dynamicAdded = true
       return { ...to, replace: true } // 重新匹配新增路由
