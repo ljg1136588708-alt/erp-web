@@ -1,6 +1,6 @@
 import type { MockMethod } from 'vite-plugin-mock'
 import { crudMock } from './crud'
-import { stocks, flows, addStock, getQty, reduceStock } from './inventory'
+import { stocks, flows, addStock, getQty, reduceStock, setQty } from './inventory'
 
 const whName = ['主仓库', '北方仓', '南方仓']
 function orderItems(i: number) {
@@ -140,6 +140,16 @@ export default [
         }
       }
       list.forEach((it: any) => reduceStock(it.goodsId, it.goodsName, warehouseId, warehouseName, it.qty))
+      return { code: 0, message: 'ok', data: null }
+    },
+  },
+  // 盘点完成:按实盘数调整库存
+  {
+    url: '/api/scm/check/:id/finish',
+    method: 'post',
+    response: ({ body }: any) => {
+      const { warehouseId, items } = body
+      ;(items || []).forEach((it: any) => setQty(it.goodsId, warehouseId, it.actualQty))
       return { code: 0, message: 'ok', data: null }
     },
   },
