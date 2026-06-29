@@ -7,8 +7,36 @@ const menus = [
     children: [
       { name: 'user', path: '/system/user', title: '用户管理' },
       { name: 'role', path: '/system/role', title: '角色管理' },
+      { name: 'dept', path: '/system/dept', title: '部门管理' },
+      { name: 'menu', path: '/system/menu', title: '菜单管理' },
     ],
   },
+  {
+    name: 'scm', path: '/scm', title: '进销存', icon: 'ShopOutlined',
+    children: [
+      { name: 'goods', path: '/scm/goods', title: '商品管理' },
+      { name: 'supplier', path: '/scm/supplier', title: '供应商' },
+      { name: 'customer', path: '/scm/customer', title: '客户' },
+      { name: 'warehouse', path: '/scm/warehouse', title: '仓库' },
+      { name: 'purchase', path: '/scm/purchase', title: '采购订单' },
+      { name: 'sale', path: '/scm/sale', title: '销售订单' },
+      { name: 'stock', path: '/scm/stock', title: '库存查询' },
+    ],
+  },
+]
+
+// admin 拥有全部按钮权限
+const permissions = [
+  'user:add', 'user:edit', 'user:delete',
+  'role:add', 'role:edit', 'role:delete',
+  'dept:add', 'dept:edit', 'dept:delete',
+  'menu:add', 'menu:edit', 'menu:delete',
+  'goods:add', 'goods:edit', 'goods:delete',
+  'supplier:add', 'supplier:edit', 'supplier:delete',
+  'customer:add', 'customer:edit', 'customer:delete',
+  'warehouse:add', 'warehouse:edit', 'warehouse:delete',
+  'purchase:add', 'purchase:edit', 'purchase:delete',
+  'sale:add', 'sale:edit', 'sale:delete',
 ]
 
 export default [
@@ -33,7 +61,7 @@ export default [
         username: 'admin',
         nickname: '超级管理员',
         roles: ['admin'],
-        permissions: ['user:add', 'user:edit', 'user:delete', 'role:add'],
+        permissions,
         menus,
       },
     }),
