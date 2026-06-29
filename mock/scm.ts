@@ -1,4 +1,6 @@
+import type { MockMethod } from 'vite-plugin-mock'
 import { crudMock } from './crud'
+import { stocks, flows } from './inventory'
 
 const goods = Array.from({ length: 18 }, (_, i) => ({
   id: i + 1,
@@ -39,12 +41,6 @@ const sales = Array.from({ length: 15 }, (_, i) => ({
   amount: (i + 1) * 1200,
   status: ['待审核', '已审核', '已出库'][i % 3],
 }))
-const stocks = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  goodsName: `商品${(i % 18) + 1}`,
-  warehouseName: ['主仓库', '北方仓', '南方仓'][i % 3],
-  quantity: (i + 1) * 5,
-}))
 const inbounds = Array.from({ length: 14 }, (_, i) => ({
   id: i + 1,
   inboundNo: `IN${String(20260000 + i + 1)}`,
@@ -61,14 +57,6 @@ const outbounds = Array.from({ length: 14 }, (_, i) => ({
   amount: (i + 1) * 1200,
   date: '2026-06-29',
 }))
-const flows = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  type: i % 2 === 0 ? '入库' : '出库',
-  goodsName: `商品${(i % 18) + 1}`,
-  warehouseName: ['主仓库', '北方仓', '南方仓'][i % 3],
-  quantity: (i + 1) * 5,
-  date: '2026-06-29',
-}))
 const checks = Array.from({ length: 12 }, (_, i) => ({
   id: i + 1,
   checkNo: `CK${String(20260000 + i + 1)}`,
@@ -77,6 +65,19 @@ const checks = Array.from({ length: 12 }, (_, i) => ({
   date: '2026-06-29',
 }))
 
+// 只读分页:读实时共享数组(库存/流水),支持 keyword 模糊
+function listOf<T>(getData: () => T[]) {
+  return ({ query }: any) => {
+    const page = Number(query.page || 1)
+    const pageSize = Number(query.pageSize || 10)
+    const kw = (query.keyword || '').trim()
+    const all = getData()
+    const filtered = kw ? all.filter((d) => JSON.stringify(d).includes(kw)) : all
+    const start = (page - 1) * pageSize
+    return { code: 0, message: 'ok', data: { list: filtered.slice(start, start + pageSize), total: filtered.length } }
+  }
+}
+
 export default [
   ...crudMock('/scm/goods', goods),
   ...crudMock('/scm/supplier', suppliers),
@@ -84,9 +85,21 @@ export default [
   ...crudMock('/scm/warehouse', warehouses),
   ...crudMock('/scm/purchase', purchases),
   ...crudMock('/scm/sale', sales),
-  ...crudMock('/scm/stock', stocks),
   ...crudMock('/scm/inbound', inbounds),
   ...crudMock('/scm/outbound', outbounds),
-  ...crudMock('/scm/flow', flows),
   ...crudMock('/scm/check', checks),
-]
+  // 库存 / 流水:读共享 inventory 实时数据
+  { url: '/api/scm/stock', method: 'get', response: listOf(() => stocks) },
+  { url: '/api/scm/flow', method: 'get', response: listOf(() => flows) },
+  // 下拉选项:明细选商品、单据选仓库
+  {
+    url: '/api/scm/goods/options',
+    method: 'get',
+    response: () => ({ code: 0, message: 'ok', data: goods.map((g) => ({ id: g.id, name: g.name, price: g.price, unit: g.unit })) }),
+  },
+  {
+    url: '/api/scm/warehouse/options',
+    method: 'get',
+    response: () => ({ code: 0, message: 'ok', data: warehouses.map((w) => ({ id: w.id, name: w.name })) }),
+  },
+] as MockMethod[]
