@@ -18,8 +18,8 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑部门' : '新增部门'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="部门名称"><a-input v-model:value="form.name" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="部门名称" name="name" :rules="[{ required: true, message: '请输入部门名称' }]"><a-input v-model:value="form.name" /></a-form-item>
         <a-form-item label="上级部门">
           <a-select v-model:value="form.parentId" :options="parentOptions" />
         </a-form-item>
@@ -41,6 +41,7 @@ const { list, loading, query, fetchList, create, update, remove } = useCrud<Dept
 const modalOpen = ref(false)
 const editing = ref<Dept | null>(null)
 const form = reactive<Partial<Dept>>({})
+const formRef = ref()
 
 // 部门量小,拉全量(不分页)再在前端构建树
 query.value.pageSize = 1000
@@ -78,6 +79,11 @@ function openEdit(record: Dept) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   const payload = { name: form.name, parentId: form.parentId, sort: form.sort }
   if (editing.value) await update(editing.value.id, payload)
   else await create(payload)

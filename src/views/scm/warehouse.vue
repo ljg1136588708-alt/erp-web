@@ -19,8 +19,8 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑仓库' : '新增仓库'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="仓库名称"><a-input v-model:value="form.name" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="仓库名称" name="name" :rules="[{ required: true, message: '请输入仓库名称' }]"><a-input v-model:value="form.name" /></a-form-item>
         <a-form-item label="所在地"><a-input v-model:value="form.location" /></a-form-item>
       </a-form>
     </a-modal>
@@ -40,6 +40,7 @@ const keyword = ref('')
 const modalOpen = ref(false)
 const editing = ref<Warehouse | null>(null)
 const form = reactive<Partial<Warehouse>>({})
+const formRef = ref()
 
 const pagination = computed(() => ({
   current: query.value.page as number,
@@ -69,6 +70,11 @@ function openEdit(record: Warehouse) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   if (editing.value) await update(editing.value.id, { ...form })
   else await create({ ...form })
   message.success('保存成功')

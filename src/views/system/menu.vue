@@ -20,9 +20,9 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑菜单' : '新增菜单'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="菜单标题"><a-input v-model:value="form.title" /></a-form-item>
-        <a-form-item label="路由路径"><a-input v-model:value="form.path" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="菜单标题" name="title" :rules="[{ required: true, message: '请输入菜单标题' }]"><a-input v-model:value="form.title" /></a-form-item>
+        <a-form-item label="路由路径" name="path" :rules="[{ required: true, message: '请输入路由路径' }]"><a-input v-model:value="form.path" /></a-form-item>
         <a-form-item label="权限标识"><a-input v-model:value="form.permission" /></a-form-item>
       </a-form>
     </a-modal>
@@ -42,6 +42,7 @@ const keyword = ref('')
 const modalOpen = ref(false)
 const editing = ref<Menu | null>(null)
 const form = reactive<Partial<Menu>>({})
+const formRef = ref()
 
 const pagination = computed(() => ({
   current: query.value.page as number,
@@ -71,6 +72,11 @@ function openEdit(record: Menu) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   if (editing.value) await update(editing.value.id, { ...form })
   else await create({ ...form })
   message.success('保存成功')

@@ -28,9 +28,9 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑用户' : '新增用户'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="用户名"><a-input v-model:value="form.username" /></a-form-item>
-        <a-form-item label="昵称"><a-input v-model:value="form.nickname" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="用户名" name="username" :rules="[{ required: true, message: '请输入用户名' }]"><a-input v-model:value="form.username" /></a-form-item>
+        <a-form-item label="昵称" name="nickname" :rules="[{ required: true, message: '请输入昵称' }]"><a-input v-model:value="form.nickname" /></a-form-item>
         <a-form-item label="角色"><a-input v-model:value="form.roleName" /></a-form-item>
         <a-form-item label="状态">
           <a-switch v-model:checked="statusBool" />
@@ -54,6 +54,7 @@ const keyword = ref('')
 const modalOpen = ref(false)
 const editing = ref<User | null>(null)
 const form = reactive<Partial<User>>({})
+const formRef = ref()
 const statusBool = computed({
   get: () => form.status === 1,
   set: (v: boolean) => (form.status = v ? 1 : 0),
@@ -87,6 +88,11 @@ function openEdit(record: User) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   if (editing.value) await update(editing.value.id, { ...form })
   else await create({ ...form })
   message.success('保存成功')

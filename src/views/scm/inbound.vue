@@ -22,10 +22,10 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑入库单' : '新增入库单'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="入库单号"><a-input v-model:value="form.inboundNo" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="入库单号" name="inboundNo" :rules="[{ required: true, message: '请输入入库单号' }]"><a-input v-model:value="form.inboundNo" /></a-form-item>
         <a-form-item label="来源采购单"><a-input v-model:value="form.sourceOrderNo" /></a-form-item>
-        <a-form-item label="仓库"><a-input v-model:value="form.warehouseName" /></a-form-item>
+        <a-form-item label="仓库" name="warehouseName" :rules="[{ required: true, message: '请输入仓库' }]"><a-input v-model:value="form.warehouseName" /></a-form-item>
         <a-form-item label="金额"><a-input-number v-model:value="form.amount" /></a-form-item>
         <a-form-item label="日期"><a-input v-model:value="form.date" /></a-form-item>
       </a-form>
@@ -46,6 +46,7 @@ const keyword = ref('')
 const modalOpen = ref(false)
 const editing = ref<Inbound | null>(null)
 const form = reactive<Partial<Inbound>>({})
+const formRef = ref()
 
 const pagination = computed(() => ({
   current: query.value.page as number,
@@ -75,6 +76,11 @@ function openEdit(record: Inbound) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   if (editing.value) await update(editing.value.id, { ...form })
   else await create({ ...form })
   message.success('保存成功')

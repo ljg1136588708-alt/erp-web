@@ -20,8 +20,8 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑客户' : '新增客户'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="客户名称"><a-input v-model:value="form.name" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="客户名称" name="name" :rules="[{ required: true, message: '请输入客户名称' }]"><a-input v-model:value="form.name" /></a-form-item>
         <a-form-item label="联系人"><a-input v-model:value="form.contact" /></a-form-item>
         <a-form-item label="电话"><a-input v-model:value="form.phone" /></a-form-item>
       </a-form>
@@ -42,6 +42,7 @@ const keyword = ref('')
 const modalOpen = ref(false)
 const editing = ref<Customer | null>(null)
 const form = reactive<Partial<Customer>>({})
+const formRef = ref()
 
 const pagination = computed(() => ({
   current: query.value.page as number,
@@ -71,6 +72,11 @@ function openEdit(record: Customer) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   if (editing.value) await update(editing.value.id, { ...form })
   else await create({ ...form })
   message.success('保存成功')

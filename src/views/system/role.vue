@@ -21,9 +21,9 @@
     </a-table>
 
     <a-modal v-model:open="modalOpen" :title="editing ? '编辑角色' : '新增角色'" @ok="onSubmit">
-      <a-form :model="form" layout="vertical">
-        <a-form-item label="角色名称"><a-input v-model:value="form.name" /></a-form-item>
-        <a-form-item label="角色编码"><a-input v-model:value="form.code" /></a-form-item>
+      <a-form ref="formRef" :model="form" layout="vertical">
+        <a-form-item label="角色名称" name="name" :rules="[{ required: true, message: '请输入角色名称' }]"><a-input v-model:value="form.name" /></a-form-item>
+        <a-form-item label="角色编码" name="code" :rules="[{ required: true, message: '请输入角色编码' }]"><a-input v-model:value="form.code" /></a-form-item>
         <a-form-item label="备注"><a-input v-model:value="form.remark" /></a-form-item>
       </a-form>
     </a-modal>
@@ -62,6 +62,7 @@ const keyword = ref('')
 const modalOpen = ref(false)
 const editing = ref<Role | null>(null)
 const form = reactive<Partial<Role>>({})
+const formRef = ref()
 
 const pagination = computed(() => ({
   current: query.value.page as number,
@@ -91,6 +92,11 @@ function openEdit(record: Role) {
   modalOpen.value = true
 }
 async function onSubmit() {
+  try {
+    await formRef.value?.validate()
+  } catch {
+    return // 校验不通过,保持弹窗打开
+  }
   if (editing.value) await update(editing.value.id, { ...form })
   else await create({ ...form })
   message.success('保存成功')
