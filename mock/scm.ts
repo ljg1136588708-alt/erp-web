@@ -25,10 +25,33 @@ const warehouses = [
   { id: 2, name: '北方仓', location: '北京' },
   { id: 3, name: '南方仓', location: '广州' },
 ]
+const purchases = Array.from({ length: 15 }, (_, i) => ({
+  id: i + 1,
+  orderNo: `PO${String(20260000 + i + 1)}`,
+  supplierName: `供应商${(i % 12) + 1}`,
+  amount: (i + 1) * 1000,
+  status: ['待审核', '已审核', '已入库'][i % 3],
+}))
+const sales = Array.from({ length: 15 }, (_, i) => ({
+  id: i + 1,
+  orderNo: `SO${String(20260000 + i + 1)}`,
+  customerName: `客户${(i % 12) + 1}`,
+  amount: (i + 1) * 1200,
+  status: ['待审核', '已审核', '已出库'][i % 3],
+}))
+const stocks = Array.from({ length: 20 }, (_, i) => ({
+  id: i + 1,
+  goodsName: `商品${(i % 18) + 1}`,
+  warehouseName: ['主仓库', '北方仓', '南方仓'][i % 3],
+  quantity: (i + 1) * 5,
+}))
 
 export default [
   ...crudMock('/scm/goods', goods),
   ...crudMock('/scm/supplier', suppliers),
   ...crudMock('/scm/customer', customers),
   ...crudMock('/scm/warehouse', warehouses),
+  ...crudMock('/scm/purchase', purchases),
+  ...crudMock('/scm/sale', sales),
+  ...crudMock('/scm/stock', stocks),
 ]
