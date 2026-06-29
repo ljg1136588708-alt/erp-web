@@ -1,6 +1,15 @@
 import type { MockMethod } from 'vite-plugin-mock'
 import { crudMock } from './crud'
-import { stocks, flows } from './inventory'
+import { stocks, flows, addStock } from './inventory'
+
+const whName = ['主仓库', '北方仓', '南方仓']
+function orderItems(i: number) {
+  const items = [
+    { goodsId: (i % 12) + 1, goodsName: `商品${(i % 12) + 1}`, qty: (i % 5) + 1, price: ((i % 12) + 1) * 10 },
+    { goodsId: ((i + 1) % 12) + 1, goodsName: `商品${((i + 1) % 12) + 1}`, qty: (i % 3) + 1, price: (((i + 1) % 12) + 1) * 10 },
+  ]
+  return { items, amount: items.reduce((s, it) => s + it.qty * it.price, 0) }
+}
 
 const goods = Array.from({ length: 18 }, (_, i) => ({
   id: i + 1,
@@ -27,13 +36,21 @@ const warehouses = [
   { id: 2, name: '北方仓', location: '北京' },
   { id: 3, name: '南方仓', location: '广州' },
 ]
-const purchases = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  orderNo: `PO${String(20260000 + i + 1)}`,
-  supplierName: `供应商${(i % 12) + 1}`,
-  amount: (i + 1) * 1000,
-  status: ['待审核', '已审核', '已入库'][i % 3],
-}))
+const purchases = Array.from({ length: 15 }, (_, i) => {
+  const { items, amount } = orderItems(i)
+  const wId = (i % 3) + 1
+  return {
+    id: i + 1,
+    orderNo: `PO${String(20260000 + i + 1)}`,
+    supplierName: `供应商${(i % 12) + 1}`,
+    warehouseId: wId,
+    warehouseName: whName[wId - 1],
+    date: '2026-06-29',
+    amount,
+    status: ['待审核', '已审核', '已入库'][i % 3],
+    items,
+  }
+})
 const sales = Array.from({ length: 15 }, (_, i) => ({
   id: i + 1,
   orderNo: `SO${String(20260000 + i + 1)}`,
@@ -91,6 +108,16 @@ export default [
   // 库存 / 流水:读共享 inventory 实时数据
   { url: '/api/scm/stock', method: 'get', response: listOf(() => stocks) },
   { url: '/api/scm/flow', method: 'get', response: listOf(() => flows) },
+  // 采购收货:逐明细增加库存(并写流水)
+  {
+    url: '/api/scm/purchase/:id/receive',
+    method: 'post',
+    response: ({ body }: any) => {
+      const { warehouseId, warehouseName, items } = body
+      ;(items || []).forEach((it: any) => addStock(it.goodsId, it.goodsName, warehouseId, warehouseName, it.qty))
+      return { code: 0, message: 'ok', data: null }
+    },
+  },
   // 下拉选项:明细选商品、单据选仓库
   {
     url: '/api/scm/goods/options',
