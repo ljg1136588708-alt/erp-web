@@ -20,7 +20,11 @@ const menus = [
       { name: 'warehouse', path: '/scm/warehouse', title: '仓库' },
       { name: 'purchase', path: '/scm/purchase', title: '采购订单' },
       { name: 'sale', path: '/scm/sale', title: '销售订单' },
+      { name: 'inbound', path: '/scm/inbound', title: '采购入库单' },
+      { name: 'outbound', path: '/scm/outbound', title: '销售出库单' },
       { name: 'stock', path: '/scm/stock', title: '库存查询' },
+      { name: 'flow', path: '/scm/flow', title: '出入库流水' },
+      { name: 'check', path: '/scm/check', title: '库存盘点' },
     ],
   },
 ]
@@ -35,8 +39,12 @@ const permissions = [
   'supplier:add', 'supplier:edit', 'supplier:delete',
   'customer:add', 'customer:edit', 'customer:delete',
   'warehouse:add', 'warehouse:edit', 'warehouse:delete',
-  'purchase:add', 'purchase:edit', 'purchase:delete',
-  'sale:add', 'sale:edit', 'sale:delete',
+  'purchase:add', 'purchase:edit', 'purchase:delete', 'purchase:audit',
+  'sale:add', 'sale:edit', 'sale:delete', 'sale:audit',
+  'inbound:add', 'inbound:edit', 'inbound:delete',
+  'outbound:add', 'outbound:edit', 'outbound:delete',
+  'check:add', 'check:edit', 'check:delete',
+  'role:assign', 'user:reset',
 ]
 
 export default [
